@@ -1,7 +1,9 @@
 #!/usr/bin/python
-# -*- encoding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
+import matplotlib
 import matplotlib.pyplot as plt
+
 import numpy as np
 import sys
 
@@ -9,7 +11,6 @@ import os
 import pickle
 
 from collections import defaultdict
-from sklearn.metrics import brier_score_loss
 from sklearn.metrics import confusion_matrix
 
 def plotBoxplotByClass(positiveByClass, negativebyClass, labels):
@@ -44,46 +45,58 @@ def plotHist(positive, negative):
 	plt.legend(("Positive", "Negative"))
 	plt.show()
 
-def main(data):
+def oldPlot(classifierResults):
+	values = classifierResults[0]
 
-	if not os.path.isdir("classifier_results"):
-		os.makedirs("classifier_results")
+	positive = []
+	negative = []
+	for target, pr in zip(values.y_test, values.probas):
+		index = pr.argmax()
+		value = pr[index]
+		positive.append(value) if target == index else negative.append(value)
 
-	if not os.path.isdir("plots"):
-		os.makedirs("plots")
-	
+	plotHist(positive, negative)
+
+def main():	
 	classifierResults = []
-	filename = "classifier_results/Decision Tree_results.p"
+	filename = "classifier_results/Naive Bayes_results.p"
 	
 	classifierResults = pickle.load(open(filename, "rb" ))
+	#oldPlot(classifierResults)
 
 	test = [[]]*len(classifierResults)
-	for i, classifierResult in enumerate(classifierResults):
-		cm = confusion_matrix(classifierResult.y_test, classifierResult.predictions)
-		cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-		cm = np.around(cm, decimals=2)
-		cm[np.isnan(cm)] = 0.0
+	names = []
 
-		a = np.matrix(cm)
-	
-		test[i] = a.diagonal()
+	for i, clfr in enumerate(classifierResults):
+		cm = confusion_matrix(clfr.y_test, clfr.predictions)
+		np.set_printoptions(precision=2)
+		cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+		test[i] = np.matrix(cm).diagonal()
+		names.append("{}%".format(round(clfr.weight_train*100,0)))
+		#print(test[i])
+		print(names[i])
+		print("\n")
+
 
 	plt.figure()
-	plt.boxplot(test)
+	plt.title("Distribuição da Matrix de Confusão - Naive Bayes")
+	plt.boxplot(test, labels=names)
+	plt.ylabel('Escore')
+	plt.xlabel('%Treinamento')
+	plt.tick_params(labelsize="medium")
 
-	te = []
-	for i, t in enumerate(test):
-		te.append(i//10)
+	#te = []
+	#for i, t in enumerate(test):
+		#te.append(i//10)
 	
 	#plt.setp(te, rotation=45, fontsize=8)	
-	plt.xticks([range(0, len(te) * , 2)], te)
+	#plt.xticks([range(0, len(te) * 2)], te)
 	#plt.xlim(-2, len(te)*2)
 	plt.show()
 
-if __name__ == "__main__":
-	if len(sys.argv) != 2:
-		sys.exit("Use: svm.py <data>")
 
-	main(sys.argv[1])
+
+if __name__ == "__main__":
+	main()
 
 

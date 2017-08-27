@@ -6,7 +6,7 @@
 Classifier comparison
 =====================
 
-A comparison among Decision Tree and Naive Bayers classifiers using scikit-learn on synthetic datasets.
+A comparison among Decision Tree and Naive Bayers classifiers using scikit-learn on synthetic dataset.
 """
 print(__doc__)
 
@@ -56,7 +56,7 @@ def main(data):
 			classifierResults = pickle.load(open(filename, "rb" ))
 
 			for classifierResult in classifierResults:
-				if(classifierResult.weight_train == 0.5):
+				if(classifierResult.weight_test == 0.5):
 					models_results_50_50[name] = classifierResult
 		else:
 			for i, weight_test in enumerate(weights_test):
@@ -77,7 +77,7 @@ def main(data):
 
 				classifierResults.append(classifierResult)
 
-				if(weights_test == 0.5):
+				if(weight_test == 0.5):
 					models_results_50_50[name] = classifierResult
 
 			# Save results
@@ -90,11 +90,12 @@ def main(data):
 	plotUtils = PlotUtils()
 	
 	#1) utilize 10% para treinamento e 90% para teste e aumente em 10 pontos percentuais a base de treinamento (diminuindo em 10 pp a base de teste) e analise os impactos na taxa de reconhecimento.	
-	# plotUtils.plotMeanAccuracyWithTrainVariance(models_results)
+	plotUtils.plotMeanAccuracyWithTrainVariance(models_results)
 	
 	# # 2) Analise os impactos do tamanho da base na matriz de confusão. A matriz continua com a mesma distribuição? O aumento da base diminuiu a confusão entre algumas classes ou não ? Os dois classificadores tem o mesmo comportamento?
-	# plotUtils.plotConfusionMatrix(models_results)
-	# plotUtils.plotRecallPrecision(models_results)
+	plotUtils.plotConfusionMatrix(models_results)
+	plotUtils.plotConfusionMatrixBoxplot(models_results)
+	#plotUtils.plotRecallPrecision(models_results)
 
 	# 3) Utilizando o método que estima probabilidade, mostre a distribuição das probabilidades para os acertos e erros de cada classificador. Compare as distribuições dos dois classificadores e reporte as suas conclusões. Para esse experimento utilize (50-50 para treinamento e teste).
 	plotUtils.plotProbabilityDistribution(models_results_50_50)
@@ -102,7 +103,4 @@ def main(data):
 	print("Finished!")
 
 if __name__ == "__main__":
-	if len(sys.argv) != 2:
-		sys.exit("Use: svm.py <data>")
-
-	main(sys.argv[1])
+	main("data")

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from scikitplot import plotters as skplt
+from sklearn.metrics import confusion_matrix
 
 class PlotUtils():
 	def __init__(self):
@@ -15,11 +16,11 @@ class PlotUtils():
 		
 		plt.tight_layout()
 		fig.subplots_adjust(top=0.8)
-		fig.suptitle("Classifier Comparison (Train)")
+		fig.suptitle("Comparação entre Classificadores")
 		plt.savefig("plots/mean_accurancy_among_models_train_variance.pdf")
 
 	def _plotMeanAccuracyWithTrainVarianceLines(self, models_results, ax):
-		ax.set_title("Comparing using Lines")
+		ax.set_title("Comparação utilizando gráfico de linha")
 
 		for key, values in models_results.items():
 			score = np.zeros(len(values), dtype=np.float64)
@@ -32,15 +33,15 @@ class PlotUtils():
 			ax.plot(weight, score, label=key)
 
 		ax.legend(loc='upper right')
-		ax.set_ylabel('Score')
-		ax.set_xlabel('%Train')
+		ax.set_ylabel('Escore')
+		ax.set_xlabel('%Treinamento')
 		ax.grid(True)
 		ax.tick_params(labelsize="medium")
 
 		return ax
 
 	def _plotMeanAccuracyWithTrainVarianceBoxplot(self, models_results, ax):
-		ax.set_title("Comparing using Boxplot")
+		ax.set_title("Comparação utilizando gráfico de caixa")
 
 		scores = []
 		names = []
@@ -58,59 +59,27 @@ class PlotUtils():
 
 		return ax
 
-	def plotProbabilityDistribution(self, models_results_50_50):
-		for key, values in models_results_50_50.items():
-			plt.figure()
-			plt.title("Probability Distribution - " + key)
-
-			labels = np.unique(values.y_test)
-			positive = []
-			negative = []
-			positiveByClass = [[]]*len(labels)
-			negativebyClass = [[]]*len(labels)	
-
-			for target, pr in zip(values.y_test, values.probas):
-				index = pr.argmax()
-				value = pr[index]
-				
-				if target == index:			
-					positive.append(value)
-					positiveByClass[index].append(value)
-				else:			
-					negative.append(value)
-					negativebyClass[index].append(value)
-
-			plt.hist((positive,negative))			
-			plt.legend(("Positive", "Negative"))
-			plt.tight_layout()
-			plt.savefig("plots/probability_distribution_" + key + ".pdf")
-
 	def plotConfusionMatrixBoxplot(self, models_results):
-		for key, values in models_results_50_50.items():
+		for key, values in models_results.items():
+			
+			matrix_dist = [[]]*len(values)
+			names = []
+
+			for i, clfr in enumerate(values):
+				cm = confusion_matrix(clfr.y_test, clfr.predictions)
+				np.set_printoptions(precision=2)
+				cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+				matrix_dist[i] = np.matrix(cm).diagonal()
+				names.append("{}%".format(round(clfr.weight_train*100,0)))
+
 			plt.figure()
-			plt.title("Confusion Matrix Distribution - " + key)
-
-			labels = np.unique(values.y_test)
-			positive = []
-			negative = []
-			positiveByClass = [[]]*len(labels)
-			negativebyClass = [[]]*len(labels)	
-
-			for target, pr in zip(values.y_test, values.probas):
-				index = pr.argmax()
-				value = pr[index]
-				
-				if target == index:			
-					positive.append(value)
-					positiveByClass[index].append(value)
-				else:			
-					negative.append(value)
-					negativebyClass[index].append(value)
-
-			plt.hist((positive,negative))			
-			plt.legend(("Positive", "Negative"))
+			plt.title("Distribuição da Matrix de Confusão - " + key)
+			plt.boxplot(matrix_dist, labels=names)
+			plt.ylabel('Escore')
+			plt.xlabel('%Treinamento')
+			plt.tick_params(labelsize="medium")
 			plt.tight_layout()
-			plt.savefig("plots/probability_distribution_" + key + ".pdf")
+			plt.savefig("plots/confusion_matrix_distribution_" + key + ".pdf")
 
 	def plotConfusionMatrix(self, models_results):
 		for key, values in models_results.items():
@@ -119,10 +88,10 @@ class PlotUtils():
 			indexes = [(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)]
 
 			for i, clfr in enumerate(values):
-				skplt.plot_confusion_matrix(y_true=clfr.y_test, y_pred=clfr.predictions, normalize=True, ax=axes[indexes[i]])
+				skplt.plot_confusion_matrix(y_true=clfr.y_test, y_pred=clfr.predictions, normalize=True, ax=axes[indexes[i]], title="Matrix de Confusão Normalizada")
 
 				plt.sca(axes[indexes[i]])
-				axes[indexes[i]].set_xlabel("Training/Test ({}/{})".format(round(clfr.weight_train*100,0), round(clfr.weight_test*100,0)))  # set x label
+				axes[indexes[i]].set_xlabel("Treinamento/Teste ({}/{})".format(round(clfr.weight_train*100,0), round(clfr.weight_test*100,0)))  # set x label
 				axes[indexes[i]].get_xaxis().set_ticks([])       # hidden x axis text
 				axes[indexes[i]].get_yaxis().set_ticks([])
 			
@@ -131,6 +100,33 @@ class PlotUtils():
 			fig.subplots_adjust(top=0.95)
 			fig.suptitle(key, fontsize=16)
 			plt.savefig("plots/confusion_matrix_{}.pdf".format(key))
+
+	def plotProbabilityDistribution(self, models_results_50_50):
+		for key, values in models_results_50_50.items():
+			plt.figure()
+			plt.title("Distribuição de Probabilidade - " + key)
+
+			labels = np.unique(values.y_test)
+			positive = []
+			negative = []
+			positiveByClass = [[]]*len(labels)
+			negativebyClass = [[]]*len(labels)	
+
+			for target, pr in zip(values.y_test, values.probas):
+				index = pr.argmax()
+				value = pr[index]
+				
+				if target == index:			
+					positive.append(value)
+					positiveByClass[index].append(value)
+				else:			
+					negative.append(value)
+					negativebyClass[index].append(value)
+
+			plt.hist((positive,negative))			
+			plt.legend(("Positivo", "Negativo"))
+			plt.tight_layout()
+			plt.savefig("plots/probability_distribution_" + key + ".pdf")
 
 	def plotRecallPrecision(self, models_results):
 		for key, values in models_results.items():
