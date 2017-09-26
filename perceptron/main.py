@@ -57,49 +57,56 @@ def accuracy(X, Y, weights, bias):
 
 	return sum_correct/float(len(Y))
 
-def plot(X, Y, weights, bias, epoch):
+def plot(X, Y, weights, bias, epoch, result=None):
 	"""
 	Plots a epoch
 	"""
-	fig,ax = plt.subplots()
-	ax.set_title("Epoch %d" % epoch)
-	ax.set_xlabel("x1")
-	ax.set_ylabel("x2")
-		
 	xx = [-10,10]
-	ax.set_xlim(xx)
-	ax.set_ylim(xx)
-
-	plt.plot([0,0], xx, linewidth=0.5, c='gray')
-	plt.plot(xx, [0,0], linewidth=0.5, c='gray')
-
-	# Class division
-	c1_data=[[],[]]
-	c0_data=[[],[]]
-	for row_X, row_Y in zip(X,Y):
-		cur_i1 = row_X[0]
-		cur_i2 = row_X[1]
-
-		if row_Y == 1:
-			c1_data[0].append(cur_i1)
-			c1_data[1].append(cur_i2)
-		else:
-			c0_data[0].append(cur_i1)
-			c0_data[1].append(cur_i2)
-
-	# plot the classes
-	c0s = plt.scatter(c0_data[0],c0_data[1],s=10.0,c='r',label='Class 0')
-	c1s = plt.scatter(c1_data[0],c1_data[1],s=10.0,c='b',label='Class 1')
 
 	# Plot the line
 	yy = (-np.dot(weights[0], xx) - bias) / weights[1]
-	plt.plot(xx, yy, linewidth=0.6, c='black')
 
-	plt.tight_layout()
-	plt.legend(bbox_to_anchor=(0.5, -0.1), fontsize=10,loc='upper center', ncol=2)
+	if result == None:
+		fig,ax = plt.subplots()
+		#ax.set_title("Perceptron")
+		ax.set_xlabel("x1")
+		ax.set_ylabel("x2")
+
+		ax.set_xlim(xx)
+		ax.set_ylim(xx)
+
+		plt.plot([0,0], xx, linewidth=0.5, c='gray')
+		plt.plot(xx, [0,0], linewidth=0.5, c='gray')
+
+		# Class division
+		c1_data=[[],[]]
+		c0_data=[[],[]]
+		for row_X, row_Y in zip(X,Y):
+			cur_i1 = row_X[0]
+			cur_i2 = row_X[1]
+
+			if row_Y == 1:
+				c1_data[0].append(cur_i1)
+				c1_data[1].append(cur_i2)
+			else:
+				c0_data[0].append(cur_i1)
+				c0_data[1].append(cur_i2)
+
+		# plot the classes
+		c0s = plt.scatter(c0_data[0],c0_data[1],s=10.0,c='r',label='Class 0')
+		c1s = plt.scatter(c1_data[0],c1_data[1],s=10.0,c='b',label='Class 1')
+
+		result, = plt.plot(xx, yy, linewidth=0.6, c='black')
+	else:
+		result.set_data(xx, yy)
+
+	#plt.tight_layout()
+	plt.legend(bbox_to_anchor=(0.5, 1.1), fontsize=10,loc='upper center', ncol=2)
 	plt.savefig('plots/epoch_%s' % (str(epoch)), dpi=200, bbox_inches='tight')
-	plt.show()
-	return
+	plt.draw()
+	plt.pause(0.6)
+
+	return result
 
 def train(X, Y, learning_rate, nb_epoch):
 	"""
@@ -120,6 +127,9 @@ def train(X, Y, learning_rate, nb_epoch):
 
 	best_acc = -1
 
+	plt.ion()
+	result = None
+
 	# Número de vezes (máximo de iterações/épocas) que irei ajustar os pesos
 	for epoch in range(1, nb_epoch+1):
 		cur_acc = accuracy(X, Y, weights, bias)
@@ -132,7 +142,7 @@ def train(X, Y, learning_rate, nb_epoch):
 			best_acc = cur_acc
 
 		# Cria um gráfico para cada época
-		plot(X, Y, weights, bias, epoch)
+		result = plot(X, Y, weights, bias, epoch, result)
 
 		# Se eu encontrei os pesos que refletem a melhor acurácia possível (100%) eu paro as iterações
 		if cur_acc == 1.0:
@@ -171,6 +181,7 @@ def main(nb_epoch):
 
 	print("Training...\n")
 	weights, bias, epoch, acc = train(X, Y, 0.1, int(nb_epoch))
+	plt.show(True)
 
 	# Realizo um segundo teste 
 	print("\nEvalutating weights and bias to a new linearly separable dataset... \nAccuracy: %f" % accuracy(X_test, Y_test, weights, bias))
