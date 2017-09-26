@@ -8,21 +8,13 @@ Perceptron Algorithm
 
 Perceptron classifier made with Python3. 
 
-The plots for each epoch is generated in plot folder. 
-After all, the plots are organized in a gif called final.gif.
-
-Imports used: imageio, matplotlib, numpy, random, os, shutil, sys
-
-Required Packages:
-	pip3 install imageio
-	pip3 install matplotlib
-	pip3 install numpy
+For each epoch is generated a plot, showed, and save in plot folder. 
 """
 print(__doc__)
 
-import imageio, random, os, shutil, sys
 import matplotlib.pyplot as plt
 import numpy as np
+import random, os, shutil, sys
 
 __author__ = "Jackson Antonio do Prado Lima"
 __email__ = "jacksonpradolima@gmail.com"
@@ -47,22 +39,6 @@ def generate_data(no_points):
 		Y[i] = 1 if X[i][0]+X[i][1] >= 2 else 0
 
 	return X, Y
-
-def create_gif(filenames):
-	"""
-	Generates a gif from a list of images
-
-	Parameters
-	------------
-	filenames: string
-		File names
-	"""
-	images = []
-	for filename in filenames:
-		images.append(imageio.imread(filename))
-	imageio.mimsave("final.gif", images, duration=0.6)
-	
-	print("Gif generated! You can see it in plots dir.")
 
 def predict(row_X, weights, bias):
 	"""
@@ -122,7 +98,7 @@ def plot(X, Y, weights, bias, epoch):
 	plt.tight_layout()
 	plt.legend(bbox_to_anchor=(0.5, -0.1), fontsize=10,loc='upper center', ncol=2)
 	plt.savefig('plots/epoch_%s' % (str(epoch)), dpi=200, bbox_inches='tight')
-	plt.close()
+	plt.show()
 	return
 
 def train(X, Y, learning_rate, nb_epoch):
@@ -195,11 +171,6 @@ def main(nb_epoch):
 
 	print("Training...\n")
 	weights, bias, epoch, acc = train(X, Y, 0.1, int(nb_epoch))
-
-	# Junto todas as épocas em um único gif	
-	os.chdir(basedir)
-	sortpngs = sorted([pl for pl in os.listdir(basedir) if pl.endswith('png')], key=lambda a:int(a.split('_')[1].split('.png')[0]))
-	create_gif(sortpngs)
 
 	# Realizo um segundo teste 
 	print("\nEvalutating weights and bias to a new linearly separable dataset... \nAccuracy: %f" % accuracy(X_test, Y_test, weights, bias))
