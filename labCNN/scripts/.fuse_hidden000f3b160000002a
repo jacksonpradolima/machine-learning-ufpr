@@ -1,0 +1,8 @@
+#!/bin/bash
+
+
+CONFIG=config1
+
+mkdir -p $CAFFE_ROOT/dummy/jackson/results/$CONFIG
+
+./train_dummy_net.sh $CONFIG

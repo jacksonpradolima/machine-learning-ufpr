@@ -1,0 +1,91 @@
+Este tutorial tem o intuito de criar uma versao "generica" para testes com o framework caffe. Utilizaremos a rede LENET, como base para os testes !
+
+Mais informacoes sobre outros tutoriais e exemplos, podem ser obtidas no site da caffe: http://caffe.berkeleyvision.org/
+
+1. Faca o dowload do arquivo 'dummy.zip' na sua pasta "caffe" e depois descompacte-o
+   cd $CAFFE_ROOT/
+   wget http://www.inf.ufpr.br/lesoliveira/padroes/caffe/dummy.zip
+   unzip dummy.zip
+
+
+2. A organizacao da pasta dummy e:
+	|-dummy
+		| - data
+			|-digits
+				|- train
+				|- test
+				|- val
+		| - models
+		| - examples
+
+	=> data: Contem a base 'digits' que utilizaremos nos testes e os arquivos de rotulacao da base. 
+			 ContÃ©m 40k amostras da base NIST_SD19
+			 Nesta pasta, tambem sera armazenado os arquivos "lmds", base de entrada da rede, explicado a seguir.
+			 
+	
+	=> models: Contem os exemplos de configuracao da rede e sera a pasta aondes os modelos gerados serao gravados!
+		=> lenet_solver.txt: Parametros globais do modelo, como numero de testes(val), learning rates, paths, etc. 
+		=> lenet_train_val.txt : Apresenta a configuracao da rede e os inputs (lmdb file)
+		=> lenet_deploy.txt : Arquivo com os parametros de teste rede. As camadas devem ser iguais a de treinamento, exceto pela ultima camada "accuracy".
+	
+	=> examples: Contem os scripts para facilitar o processo de treinamento e teste.
+
+
+==> TREINANDO A REDE <====
+
+1. Arquivos lmbds
+
+   LMDS sao arquivos batchs que contem todas as amostras de treinamento e validacao.
+   Esses arquivos sÃ£o o input da rede 
+   O script que cria esses batchs eh o "create_TrainVal_lmdb.sh". 
+
+	--------------------------
+	cd dummy/examples/
+	./create_TrainVal_lmdb.sh
+	-------------------------
+
+	o batchs serao gerados na pasta dummy/data/digits/ (parametrizavel via scripth)
+
+2. Treinando a rede
+	
+	Apos configurar os arquivos disponiveis em models (prototxt),
+	definindo corretamente (paths para as pastas, arquivos lmbd's), 
+	execute o seguinte script para comecar a treinar a rede
+	
+	--------------------------
+	cd dummy/examples/
+	./train_dummy_net.sh
+	-------------------------
+
+	Durante a execucao, os pesos da rede seram salvos em dummy/models/lenet_iter*, 
+	de acordo com o intervalo de epocas configurado (default: 1000).
+	
+	A validacao da rede Ã© feito a cada 500 epocas.
+	
+	A rede Ã© treinada por 10k epocas
+	
+	Esses parametros podem ser alterados em dummy/models/lenet_solver.prototxt
+	
+	Ctrl+C encerra o treinamento a qualquer momento, e grava um snapshot da rede
+
+3.  Testando a rede
+
+      Apos finalizado o treinamento, podemos testar a rede pelo script abaixo. 
+      O script esta configurado para utilizarmos os pesos da epoca 2000, mas isso pode variar de acordo com o seu problema. 
+      Altere as configuracoes no script caso deseje outros parametros. 
+      
+      Antes de tudo, e necessario compilar o codigo fonte do arquivo de classificacao (classification.cpp), pelo comando make.
+
+	--------------------------
+	cd dummy/examples/
+	make
+	./test_dummy_net.sh
+	-------------------------
+
+
+4. Feature Extraction
+	E possivel utilizar as camadas da CNN para extracao de caracteristicas.
+	Investigue o arquivo python feature_extraction.py , para entender o processo.
+
+OBS: Acentos/Caracteres especiais removidos por questoes de codificacao do texto
+

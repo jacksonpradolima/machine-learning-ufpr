@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+#models config
+deploy=$CAFFE_ROOT/dummy/jackson/models/config1/lenet_deploy.prototxt
+weigths_model=$CAFFE_ROOT/dummy/jackson/models/config1/snapshot/lenet_iter_2000.caffemodel
+mean_img=$CAFFE_ROOT/dummy/data/dummy_mean.binaryproto
+
+#data source config
+labels=$CAFFE_ROOT/dummy/data/digits/labels.txt
+list_of_files=$CAFFE_ROOT/dummy/data/digits/test.txt
+source=$CAFFE_ROOT/dummy/data/digits/test/
+
+#MINMAX | MEAN_IMAGE
+normType=MINMAX
+
+#Print N predictions
+nPreds=5
+
+LOG=$CAFFE_ROOT/dummy/jackson/models/config1/scripts/output.txt
+
+./classification2 $deploy $weigths_model $mean_img $labels $list_of_files $source $normType $nPreds 2>&1 | tee $LOG

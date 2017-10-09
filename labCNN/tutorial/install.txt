@@ -1,0 +1,72 @@
+=====================================================
+Testado no servidor ORVAL (DINF - UFPR)
+Efetue login (ssh) nessas servidoras para compilacao
+=====================================================
+
+==> OBS: Para efeitos de quota, opte por usar a pasta 
+	/nobackup/ppginf/$login/ para a compilacao <==   
+#####################################################
+
+
+1. Entre no servidor orval
+	ssh $seulogin@orval
+	cd /nobackup/ppginf/$seulogin/   
+		OBS: Por questoes de quota compile em /nobackup/...
+	
+2. Instalacao 
+	git clone https://github.com/BVLC/caffe.git
+	cd caffe
+	mkdir build 
+	cd build
+	cmake -DCPU_ONLY=True ../
+		OBS: Por questoes de hardware do servidor, essa versao esta compilando apenas em modo CPU. 
+	make
+   
+   -> Pode demorar alguns minutos. As seguintes linhas serao exibidas:
+   
+	[  1%] Running C++/Python protocol buffer compiler on /home/ppginf/aghochuli/nobackup/tutorial/caffe/src/caffe/proto/caffe.proto
+	Scanning dependencies of target caffeproto
+	[  1%] Building CXX object src/caffe/CMakeFiles/caffeproto.dir/__/__/include/caffe/proto/caffe.pb.cc.o
+	[  3%] Linking CXX static library ../../lib/libcaffeproto.a
+	....
+	....
+	....
+	[ 98%] Built target classification
+	[100%] Linking CXX shared library ../lib/_caffe.so
+	Creating symlink /home/ppginf/aghochuli/nobackup/tutorial/caffe/python/caffe/_caffe.so -> /home/ppginf/aghochuli/nobackup/tutorial/caffe/build/lib/_caffe.so
+	[100%] Built target pycaffe
+
+
+3. Pycaffe module (python)
+	Em build/python
+	make
+	
+4. Exportar os caminhos das bibliotecas caffe:
+    
+    export CAFFE_ROOT=/seu/caminho/para/caffe/
+    export LD_LIBRARY_PATH=$CAFFE_ROOT/build/lib/:$LD_LIBRARY_PATH
+    export PYTHONPATH=$CAFFE_ROOT/python:$PYTHONPATH
+    
+    ex: export CAFFE_ROOT=/home/ppginf/aghochuli/tutorial/caffe/
+		export LD_LIBRARY_PATH=$CAFFE_ROOT/build/lib/:$LD_LIBRARY_PATH
+		export PYTHONPATH=$CAFFE_ROOT/python:$PYTHONPATH
+
+     --> DICA: Adicione essas linhas ao final de seu ~/.bashrc para exportar automaticamente no login
+	
+5. Teste:
+
+	 cd $CAFFE_ROOT
+    ./build/tools/caffe --help
+    -> devera aparecer os paremetros de execucao. 
+    
+    Isso significa que o framework esta compilado e as libs estao linkadas.
+
+
+
+
+#Mais info e sources atualizados
+http://caffe.berkeleyvision.org/
+http://caffe.berkeleyvision.org/installation.html
+
+OBS: Acentos/Caracteres especiais removidos por questoes de codificacao do texto
+
