@@ -14,14 +14,51 @@
 #    License along with DEAP. If not, see <http://www.gnu.org/licenses/>.
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import random
 
 from deap import base
 from deap import creator
 from deap import tools
+from scipy.sparse import csr_matrix
+from scoop import futures
+from sklearn.datasets import load_svmlight_file
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+
+features, labels = load_svmlight_file("data/data")
+
+x, X_test, y, y_test = train_test_split(features, labels, test_size=0.3333, random_state=42, stratify=labels)
+X_train, X_cv, y_train, y_cv = train_test_split(x, y, test_size=0.5, train_size=0.5, random_state=42, stratify=y)
+
+clf = DecisionTreeClassifier()
+
+def run_classifier(_X_train, _X_test, _y_test):
+	model = clf.fit(_X_train, y_train)
+	predictions = clf.predict(_X_test) 
+	score = clf.score(_X_test, _y_test)
+	probas = clf.predict_proba(_X_test)
+
+	return predictions, probas, score
+
+def select_idx(individual):
+	return np.array(individual).nonzero()[0].tolist()
+
+def select_features(columns, dataset):		
+	df = pd.DataFrame(dataset.toarray())
+	return csr_matrix(pd.DataFrame(df, columns=columns))
+
+def evaluate(individual, _x_test, _y_test):
+	columns = select_idx(individual)
+	return run_classifier(select_features(columns, X_train), select_features(columns, _x_test), _y_test)
+
+def evalOneMax(individual):
+	predictions, probas, score = evaluate(individual, X_cv, y_cv)
+	return score,
 
 graph = []
-
+num_features = []
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -30,12 +67,8 @@ toolbox = base.Toolbox()
 # Attribute generator
 toolbox.register("attr_bool", random.randint, 0, 1)
 # Structure initializers
-toolbox.register("individual", tools.initRepeat, creator.Individual, 
-    toolbox.attr_bool, 100)
+toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, 132)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-
-def evalOneMax(individual):
-    return sum(individual),
 
 # Operator registering
 toolbox.register("evaluate", evalOneMax)
@@ -43,9 +76,12 @@ toolbox.register("mate", tools.cxOnePoint)
 toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
 toolbox.register("select", tools.selTournament, tournsize=3)
 
+# SCOOP
+toolbox.register("map", futures.map)
+
 def main():
     random.seed(64)
-    
+	
     ## population size
     pop = toolbox.population(n=50)
     
@@ -63,7 +99,7 @@ def main():
     
     # Begin the evolution
     for g in range(NGEN):
-        print("-- Generation %i --" % g)
+        print("\n-- Generation %i --" % g)
         
         # Select the next generation individuals
         offspring = toolbox.select(pop, len(pop))
@@ -88,21 +124,23 @@ def main():
         fitnesses = map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
-            #print ind, fit
+            #print("Ind: {} - Fit: {}".format(ind, fit))
         
         print("  Evaluated %i individuals" % len(invalid_ind))
         
         # The population is entirely replaced by the offspring
         pop[:] = offspring
         
+        length = len(pop)
+
+        print("--- Fitness ---")
         # Gather all the fitnesses in one list and print the stats
         fits = [ind.fitness.values[0] for ind in pop]
-        
-        length = len(pop)
+                
         mean = sum(fits) / length
         sum2 = sum(x*x for x in fits)
         std = abs(sum2 / length - mean**2)**0.5
-        
+                
         print("  Min %s" % min(fits))
         print("  Max %s" % max(fits))
         print("  Avg %s" % mean)
@@ -110,14 +148,33 @@ def main():
         
         graph.append(max(fits))
         
+        print("--- Features ---")
+        nf = [np.count_nonzero(ind) for ind in pop]
         
+        mean = sum(nf) / length
+        sum2 = sum(x*x for x in nf)
+        std = abs(sum2 / length - mean**2)**0.5
+                
+        print("  Min %s" % min(nf))
+        print("  Max %s" % max(nf))
+        print("  Avg %s" % mean)
+        print("  Std %s" % std)        
+        num_features.append(max(nf))
+            
     
     print("-- End of (successful) evolution --")
     
     best_ind = tools.selBest(pop, 1)[0]
     print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
 
+    predictions, probas, score = evaluate(best_ind, X_test, y_test)
+
+    print("Test score: {} - N. features selected: {}".format(score, np.count_nonzero(best_ind)))
+    
     line =plt.plot(graph)
+    plt.show()
+
+    line =plt.plot(num_features)
     plt.show()
 
 if __name__ == "__main__":
