@@ -207,7 +207,7 @@ def main(POP, CXPB, MUTPB, DATFILE):
     # plt.show()
 
     with open(DATFILE, 'w') as f:
-        f.write(score*100)
+        f.write(str(score*100))
 
     pool.close()
 
