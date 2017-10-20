@@ -9,6 +9,4 @@
 ## then the configuration is discarded.
 ##
 ## Examples of valid logical operators are: ==  !=  >=  <=  >  <  &  |  !  %in%
-param1 < 5 & mode == "x1"
-(param2 > 6 & mode == "x1") | (param2 <= 6 & mode == "x2")
-real < 4 & mode %in% c("x2", "x3")
+population%%2 != 0
