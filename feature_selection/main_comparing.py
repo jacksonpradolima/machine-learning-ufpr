@@ -185,7 +185,7 @@ def main():
     runs, NGEN = 10, 300
 
     # Process Pool of 4 workers
-    pool = multiprocessing.Pool(processes=4)
+    pool = multiprocessing.Pool(processes=10)
     toolbox.register("map", pool.map)
 
     with open("results/kruskal.csv", 'w') as f:
@@ -209,6 +209,10 @@ def main():
                             del graph[:]
 
                             labels.append("Execução = " +str(i+1))
+
+                            
+
+                            ## population size
                             pop = toolbox.population(n=POP)
 
                             logging.debug("\n\nStart of evolution - Run {}".format(i+1))
@@ -269,6 +273,7 @@ def main():
 
                             frequency += best_ind
                             individuals_idx += select_idx(best_ind)
+                            
 
                         logging.debug("-- End of (successful) Independent runs --")
                         logging.debug("\n\nFrequency: {}\n--------\nFeatures selected >= 90%: {}\n--------\nFeatures selected <= 30%: {}\n--------\nFeatures not used: {}".format(frequency, np.where(frequency >= runs*0.9), np.where(frequency <= runs*0.3), np.where(frequency <= 0)))
@@ -293,6 +298,7 @@ def main():
                         make_hist(ax, individuals_idx, bins=np.arange(0, 132), extra_y=1, xlabel="Características", ylabel="Frequência")
                         plt.tight_layout()
                         plt.savefig("plots/frequency_diagram_{}.pdf".format(configuration))
+
     pool.close()
 
 if __name__ == "__main__":
