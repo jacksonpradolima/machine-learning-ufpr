@@ -15,12 +15,12 @@ class PlotUtils():
 		self._plotMeanAccuracyWithTrainVarianceBoxplot(models_results, ax2)
 		
 		plt.tight_layout()
-		fig.subplots_adjust(top=0.8)
-		fig.suptitle("Comparação entre Classificadores")
+		#fig.subplots_adjust(top=0.8)
+		#fig.suptitle("Comparação entre Classificadores")
 		plt.savefig("plots/mean_accurancy_among_models_train_variance.pdf")
 
 	def _plotMeanAccuracyWithTrainVarianceLines(self, models_results, ax):
-		ax.set_title("Comparação utilizando gráfico de linha")
+		ax.set_title("Taxa de reconhecimento x Percentual de treinamento")
 
 		for key, values in models_results.items():
 			score = np.zeros(len(values), dtype=np.float64)
@@ -41,7 +41,7 @@ class PlotUtils():
 		return ax
 
 	def _plotMeanAccuracyWithTrainVarianceBoxplot(self, models_results, ax):
-		ax.set_title("Comparação utilizando gráfico de caixa")
+		ax.set_title("Distribuição das taxas de reconhecimento")
 
 		scores = []
 		names = []
@@ -73,7 +73,7 @@ class PlotUtils():
 				names.append("{}%".format(round(clfr.weight_train*100,0)))
 
 			plt.figure()
-			plt.title("Distribuição da Matrix de Confusão - " + key)
+			#plt.title("Distribuição da Matrix de Confusão - " + key)
 			plt.boxplot(matrix_dist, labels=names)
 			plt.ylabel('Escore')
 			plt.xlabel('%Treinamento')
@@ -98,13 +98,13 @@ class PlotUtils():
 			plt.tight_layout()			
 			# fig.subplots_adjust(hspace=0.3)
 			fig.subplots_adjust(top=0.95)
-			fig.suptitle(key, fontsize=16)
+			#fig.suptitle(key, fontsize=16)
 			plt.savefig("plots/confusion_matrix_{}.pdf".format(key))
 
 	def plotProbabilityDistribution(self, models_results_50_50):
 		for key, values in models_results_50_50.items():
 			plt.figure()
-			plt.title("Distribuição de Probabilidade - " + key)
+			#plt.title("Distribuição de Probabilidade - " + key)
 
 			labels = np.unique(values.y_test)
 			positive = []

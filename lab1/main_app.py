@@ -90,7 +90,7 @@ def main(data):
 	plotUtils = PlotUtils()
 	
 	#1) utilize 10% para treinamento e 90% para teste e aumente em 10 pontos percentuais a base de treinamento (diminuindo em 10 pp a base de teste) e analise os impactos na taxa de reconhecimento.	
-	plotUtils.plotMeanAccuracyWithTrainVariance(models_results)
+	#plotUtils.plotMeanAccuracyWithTrainVariance(models_results)
 	
 	# # 2) Analise os impactos do tamanho da base na matriz de confusão. A matriz continua com a mesma distribuição? O aumento da base diminuiu a confusão entre algumas classes ou não ? Os dois classificadores tem o mesmo comportamento?
 	plotUtils.plotConfusionMatrix(models_results)
